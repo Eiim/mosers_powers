@@ -1,5 +1,6 @@
 use num_bigint::BigUint;
 use std::mem::replace;
+use std::time::Instant;
 
 pub fn calc_to_from(min: u32, max: u32, nstart: BigUint) {
 	let mut n: BigUint = nstart;
@@ -9,52 +10,63 @@ pub fn calc_to_from(min: u32, max: u32, nstart: BigUint) {
 	let mut qrt2_frac = qrt2(qrt2_iter);
 	let one = BigUint::from(1u8);
 	let mut delta = 0;
+	let mut start = Instant::now();
 	loop {
+		let full_start = Instant::now();
+		start = Instant::now();
 		n *= &qrt2_frac.0;
 		n /= &qrt2_frac.1;
 		x += 1;
 		delta = 0;
+		println!("{0},scale,{1}", &x, start.elapsed().as_nanos());
 		
 		let target = base.pow(x);
 		
 		let mut prev_sign = 0i8;
 		loop {
+			start = Instant::now();
 			let curr = calc_fact(&n);
-			//println!("curr: {0}, target: {1}", &curr, &target);
+			println!("{0},fact,{1}", &x, start.elapsed().as_nanos());
 			if curr == target {
-				println!("Found power of two! x={0}, n={1}, delta={2}", &x, &n, &delta);
+				println!("{0},total,{1}", &x, full_start.elapsed().as_nanos());
+				//println!("{3}: Found power of two! x={0}, n={1}, delta={2}", &x, &n, &delta, start.elapsed().as_nanos());
 				break;
 			} else if curr < target {
 				if prev_sign == 1 {
-					//println!("Missed power of two. x={0}, n={1}, f={2}", &x, &n, &curr);
-					println!("Missed power of two at x={0}", &x);
+					println!("{0},total,{1}", &x, full_start.elapsed().as_nanos());
+					//println!("{1}: Missed power of two at x={0}", &x, start.elapsed().as_nanos());
 					break;
 				} else {
-					//println!("incrementing n");
 					n += &one;
 					prev_sign = -1;
 				}
 			} else {
 				if prev_sign == -1 {
-					//println!("Missed power of two. x={0}, n={1}, f={2}", &x, &n, &curr);
-					println!("Missed power of two at x={0}", &x);
+					println!("{0},total,{1}", &x, full_start.elapsed().as_nanos());
+					//println!("{1}: Missed power of two at x={0}", &x, start.elapsed().as_nanos());
 					break;
 				} else {
-					//println!("decrementing n");
 					n -= &one;
 					prev_sign = 1;
 				}
 			}
 			delta += 1;
 		}
+		
+		if x % 10000 == 0 {
+			//println!("Milestone: x={0}, n={1}, A={2}, B={3}", &x, &n, &qrt2_frac.0, &qrt2_frac.1);
+		}
+		
 		if x >= max {
 			return;
 		}
 		
 		if delta > 2 {
-			qrt2_iter += 10;
-			println!("Increasing qrt2 iterations to {0}", &qrt2_iter);
+			qrt2_iter += 20;
+			//println!("Increasing qrt2 iterations to {0}", &qrt2_iter);
+			start = Instant::now();
 			qrt2_frac = qrt2(qrt2_iter);
+			println!("{0},approx,{1}", &x, start.elapsed().as_nanos());
 		}
 	}
 }
@@ -63,17 +75,18 @@ fn calc_fact(n: &BigUint) -> BigUint {
 	let one: BigUint = BigUint::from(1u32);
 	let two: BigUint = BigUint::from(2u32);
 	let three: BigUint = BigUint::from(3u32);
-	let twenty_four: BigUint = BigUint::from(24u32);
+	//let twenty_four: BigUint = BigUint::from(24u32);
 	
 	let mut sum_one: BigUint = n.clone();
 	sum_one *= n-&one;
 	sum_one *= n-&two;
 	sum_one *= n-&three;
-	sum_one /= &twenty_four;
+	sum_one >>= 2;
+	sum_one /= &three;
 	
 	let mut sum_two: BigUint = n.clone();
 	sum_two *= n-&one;
-	sum_two = sum_two >> 1;
+	sum_two >>= 1;
 		
 	sum_one + sum_two + &one
 }
