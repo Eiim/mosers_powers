@@ -18,8 +18,8 @@ pub fn calc_to_from(min: u32, max: u32, nstart: Integer) {
 		let mut prev_sign = 0i8;
 		loop {
 			let curr = calc_fact(&n);
-			println!("Found sequence value {0}: {1}", &n, &curr);
 			if curr == target {
+				println!("Found power of two! x={0}, n={1}, delta={2}", &x, &n, &delta);
 				break;
 			} else if curr < target {
 				if prev_sign == 1 {
