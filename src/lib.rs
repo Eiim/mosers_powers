@@ -1,7 +1,5 @@
 use rug::Integer;
-use rug::ops::Pow;
 use std::mem::replace;
-use std::time::Instant;
 
 pub fn calc_to_from(min: u32, max: u32, nstart: Integer) {
 	let mut n: Integer = nstart;
@@ -9,32 +7,22 @@ pub fn calc_to_from(min: u32, max: u32, nstart: Integer) {
 	let mut qrt2_iter: u32 = 20;
 	let mut qrt2_frac = qrt2(qrt2_iter);
 	let mut delta = 0;
-	let mut start = Instant::now();
 	loop {
-		let full_start = Instant::now();
-		start = Instant::now();
 		n *= &qrt2_frac.0;
 		n /= &qrt2_frac.1;
 		x += 1;
 		delta = 0;
-		//println!("{0},scale,{1}", &x, start.elapsed().as_nanos());
 		
-		let target = Integer::from(2u8).pow(x);
+		let target = Integer::from(1u8) << x;
 		
 		let mut prev_sign = 0i8;
 		loop {
-			start = Instant::now();
 			let curr = calc_fact(&n);
-			//println!("{0},fact,{1}", &x, start.elapsed().as_nanos());
-			//println!("Found sequence value {0}: {1}", &n, &curr);
+			println!("Found sequence value {0}: {1}", &n, &curr);
 			if curr == target {
-				//println!("{0},total,{1}", &x, full_start.elapsed().as_nanos());
-				println!("{3}: Found power of two! x={0}, n={1}, delta={2}", &x, &n, &delta, start.elapsed().as_nanos());
 				break;
 			} else if curr < target {
 				if prev_sign == 1 {
-					//println!("{0},total,{1}", &x, full_start.elapsed().as_nanos());
-					//println!("{1}: Missed power of two at x={0}", &x, start.elapsed().as_nanos());
 					break;
 				} else {
 					n += 1;
@@ -42,8 +30,6 @@ pub fn calc_to_from(min: u32, max: u32, nstart: Integer) {
 				}
 			} else {
 				if prev_sign == -1 {
-					//println!("{0},total,{1}", &x, full_start.elapsed().as_nanos());
-					//println!("{1}: Missed power of two at x={0}", &x, start.elapsed().as_nanos());
 					break;
 				} else {
 					n -= 1;
@@ -54,8 +40,9 @@ pub fn calc_to_from(min: u32, max: u32, nstart: Integer) {
 		}
 		
 		if x % 10000 == 0 {
-			println!("Milestone: x={0}, n={1}, A={2}, B={3}", &x, &n, &qrt2_frac.0, &qrt2_frac.1);
+			//println!("Milestone: x={0}, n={1}, A={2}, B={3}", &x, &n, &qrt2_frac.0, &qrt2_frac.1);
 			//println!("Milestone: x={0}, n={1}", &x, &n);
+			println!("Milestone: x={0}", &x);
 		}
 		
 		if x >= max {
@@ -65,26 +52,21 @@ pub fn calc_to_from(min: u32, max: u32, nstart: Integer) {
 		if delta > 2 {
 			qrt2_iter += 20;
 			//println!("Increasing qrt2 iterations to {0}", &qrt2_iter);
-			start = Instant::now();
 			qrt2_frac = qrt2(qrt2_iter);
-			//println!("{0},approx,{1}", &x, start.elapsed().as_nanos());
 		}
 	}
 }
 
 fn calc_fact(n: &Integer) -> Integer {
-	let mut sum_one: Integer = n.clone();
-	sum_one *= n.clone()-1;
-	sum_one *= n.clone()-2;
-	sum_one *= n.clone()-3;
-	sum_one >>= 3;
-	sum_one /= 3;
-	
-	let mut sum_two: Integer = n.clone();
-	sum_two *= n.clone()-1;
-	sum_two >>= 1;
-		
-	sum_one + sum_two + 1
+	let mut result: Integer = n.clone() - 6u8;
+	result *= n;
+	result += 23u8;
+	result *= n;
+	result -= 18u8;
+	result *= n;
+	result += 24u8;
+	result >>= 3u32;
+	result / 3u8
 }
 
 /*
