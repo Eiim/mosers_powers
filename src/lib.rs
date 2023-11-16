@@ -48,7 +48,12 @@ pub fn calc_to_from(min: u32, max: u32, nstart: Integer) {
 			return;
 		}
 		
-		if x%4 == 0 || delta > 2 {
+		if x%4 == 0 {
+			qrt2 = expand_qrt2(qrt2);
+		}
+
+		if(delta > 2) { // Hopefully delta never exceeds 2, but if it does we might try an extra iteration
+			println!("delta={0}, expanding 2^1/4". &delta);
 			qrt2 = expand_qrt2(qrt2);
 		}
 	}
@@ -71,7 +76,7 @@ struct Qrt2 {
 	basepow: u32
 }
 
-pub fn expand_qrt2(input: Qrt2) -> Qrt2 {
+fn expand_qrt2(input: Qrt2) -> Qrt2 {
 	let left: Integer = input.num << 1;
 	let right: Integer = left + 1;
 
