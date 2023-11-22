@@ -1,10 +1,10 @@
 use rug::Integer;
 use rug::ops::Pow;
 
-pub fn calc_to_from(min: u32, max: u32, nstart: Integer) {
+pub fn calc_to_from(min: u32, max: u32, nstart: Integer, qrt_start: Qrt2) -> (Integer, Qrt2) {
 	let mut n: Integer = nstart;
 	let mut x: u32 = min;
-	let mut qrt2: Qrt2 = Qrt2 {num: Integer::from(2435), basepow: 11u32};
+	let mut qrt2 = qrt_start;
 	let mut delta: i8;
 	loop {
 		n *= &qrt2.num;
@@ -45,7 +45,7 @@ pub fn calc_to_from(min: u32, max: u32, nstart: Integer) {
 		}
 		
 		if x >= max {
-			return;
+			return (n, qrt2);
 		}
 		
 		if x%4 == 0 {
@@ -71,9 +71,9 @@ fn calc_fact(n: &Integer) -> Integer {
 	result / 3u8
 }
 
-struct Qrt2 {
-	num: Integer,
-	basepow: u32
+pub struct Qrt2 {
+	pub num: Integer,
+	pub basepow: u32
 }
 
 fn expand_qrt2(input: Qrt2) -> Qrt2 {
