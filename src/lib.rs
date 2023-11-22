@@ -1,15 +1,14 @@
 use rug::Integer;
-use std::mem::replace;
+use rug::ops::Pow;
 
 pub fn calc_to_from(min: u32, max: u32, nstart: Integer) {
 	let mut n: Integer = nstart;
 	let mut x: u32 = min;
-	let mut qrt2_iter: u32 = 20;
-	let mut qrt2_frac = qrt2(qrt2_iter);
-	let mut delta = 0;
+	let mut qrt2: Qrt2 = Qrt2 {num: Integer::from(2435), basepow: 11u32};
+	let mut delta: i8;
 	loop {
-		n *= &qrt2_frac.0;
-		n /= &qrt2_frac.1;
+		n *= &qrt2.num;
+		n >>= &qrt2.basepow;
 		x += 1;
 		delta = 0;
 		
@@ -49,10 +48,13 @@ pub fn calc_to_from(min: u32, max: u32, nstart: Integer) {
 			return;
 		}
 		
-		if delta > 2 {
-			qrt2_iter += 20;
-			//println!("Increasing qrt2 iterations to {0}", &qrt2_iter);
-			qrt2_frac = qrt2(qrt2_iter);
+		if x%4 == 0 {
+			qrt2 = expand_qrt2(qrt2);
+		}
+
+		if delta > 2 { // Hopefully delta never exceeds 2, but if it does we might try an extra iteration
+			println!("delta={0}, expanding 2^1/4", &delta);
+			qrt2 = expand_qrt2(qrt2);
 		}
 	}
 }
@@ -69,28 +71,45 @@ fn calc_fact(n: &Integer) -> Integer {
 	result / 3u8
 }
 
-/*
- * Uses a simple sequence of the generalized continued fraction
- * Very fast to calculate with high precision
- * Ideally we'd store the results for later but that's unnecessary for now
- * https://en.wikipedia.org/wiki/Generalized_continued_fraction#Roots_of_positive_numbers
-*/
-pub fn qrt2(iter: u32) -> (Integer, Integer) {
-	let mut A2: Integer = Integer::from(1u8);
-	let mut B2: Integer = Integer::from(0u8);
-	let mut A1: Integer = Integer::from(1u8);
-	let mut B1: Integer = Integer::from(1u8);
-	for i in 1..iter {
-		let a: u32 = 1+2*(&i-1);
-		let mut b = 2;
-		if i % 2 == 1 {
-			b = 4*&i;
+struct Qrt2 {
+	num: Integer,
+	basepow: u32
+}
+
+fn expand_qrt2(input: Qrt2) -> Qrt2 {
+	let center: Integer = input.num.clone() << 1;
+	let target: Integer = Integer::from(1u8) << (4*(input.basepow+1))+1;
+	let csq: Integer = center.clone()*center.clone();
+	let ccbd = csq.clone()*center.clone();
+	let cquad: Integer = center.clone().pow(4);
+	
+	if cquad > target {
+		//println!("High");
+		let lquad: Integer = cquad.clone() - (ccbd << 2u32) + (csq*6u8) - (center.clone() << 2u32) + 1;
+		let d: Integer = target.clone() - lquad;
+		if d < 0 {
+			println!("Pow 2 assumption broke high (basepow={0})", input.basepow+1);
+			return expand_qrt2(Qrt2 {num: input.num-1, basepow: input.basepow});
+		} else {
+			if d < cquad.clone()-target {
+				return Qrt2 {num: center-1, basepow: input.basepow+1}
+			} else {
+				return Qrt2 {num: center, basepow: input.basepow+1}
+			}
 		}
-		let A = b * A1.clone() + a * A2.clone();
-		let B = b * B1.clone() + a * B2.clone();
-		//println!("i: {4} a: {0} b: {1} A: {2} B: {3}", &a, &b, &A, &B, &i);
-		A2 = replace(&mut A1, A);
-		B2 = replace(&mut B1, B);
+	} else {
+		//println!("Low");
+		let rquad: Integer = cquad.clone() + (ccbd << 2u32) + (csq*6u8) + (center.clone() << 2u32) + 1;
+		let d: Integer = rquad - target.clone();
+		if d < 0 {
+			//println!("Pow 2 assumption broke low (basepow={0})", input.basepow+1);
+			return expand_qrt2(Qrt2 {num: input.num+1, basepow: input.basepow});
+		} else {
+			if d < cquad.clone()-target {
+				return Qrt2 {num: center+1, basepow: input.basepow+1}
+			} else {
+				return Qrt2 {num: center, basepow: input.basepow+1}
+			}
+		}
 	}
-	return(A1, B1)
 }
