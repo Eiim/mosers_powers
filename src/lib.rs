@@ -1,5 +1,5 @@
 use rug::Integer;
-use std::mem::replace;
+use rug::ops::Pow;
 
 pub fn calc_to_from(min: u32, max: u32, nstart: Integer) {
 	let mut n: Integer = nstart;
@@ -7,8 +7,8 @@ pub fn calc_to_from(min: u32, max: u32, nstart: Integer) {
 	let mut qrt2: Qrt2 = Qrt2 {num: Integer::from(2435), basepow: 11u32};
 	let mut delta: i8;
 	loop {
-		n *= &qrt2.0;
-		n >>= &qrt2.1;
+		n *= &qrt2.num;
+		n >>= &qrt2.basepow;
 		x += 1;
 		delta = 0;
 		
@@ -52,8 +52,8 @@ pub fn calc_to_from(min: u32, max: u32, nstart: Integer) {
 			qrt2 = expand_qrt2(qrt2);
 		}
 
-		if(delta > 2) { // Hopefully delta never exceeds 2, but if it does we might try an extra iteration
-			println!("delta={0}, expanding 2^1/4". &delta);
+		if delta > 2 { // Hopefully delta never exceeds 2, but if it does we might try an extra iteration
+			println!("delta={0}, expanding 2^1/4", &delta);
 			qrt2 = expand_qrt2(qrt2);
 		}
 	}
@@ -77,15 +77,39 @@ struct Qrt2 {
 }
 
 fn expand_qrt2(input: Qrt2) -> Qrt2 {
-	let left: Integer = input.num << 1;
-	let right: Integer = left + 1;
-
-	let ldist: Integer = (left ^ 4u8) >> (4*(input.basepow+1));
-	let rdist: Integer = (right ^ 4u8) >> (4*(input.basepow+1));
-
-	if(rdist.abs() < ldist.abs()) {
-		return Qrt2 {num: right, basepow: input.basepow+1};
+	let center: Integer = input.num.clone() << 1;
+	let target: Integer = Integer::from(1u8) << (4*(input.basepow+1))+1;
+	let csq: Integer = center.clone()*center.clone();
+	let ccbd = csq.clone()*center.clone();
+	let cquad: Integer = center.clone().pow(4);
+	
+	if cquad > target {
+		//println!("High");
+		let lquad: Integer = cquad.clone() - (ccbd << 2u32) + (csq*6u8) - (center.clone() << 2u32) + 1;
+		let d: Integer = target.clone() - lquad;
+		if d < 0 {
+			println!("Pow 2 assumption broke high (basepow={0})", input.basepow+1);
+			return expand_qrt2(Qrt2 {num: input.num-1, basepow: input.basepow});
+		} else {
+			if d < cquad.clone()-target {
+				return Qrt2 {num: center-1, basepow: input.basepow+1}
+			} else {
+				return Qrt2 {num: center, basepow: input.basepow+1}
+			}
+		}
 	} else {
-		return Qrt2 {num: left, basepow: input.basepow+1};
+		//println!("Low");
+		let rquad: Integer = cquad.clone() + (ccbd << 2u32) + (csq*6u8) + (center.clone() << 2u32) + 1;
+		let d: Integer = rquad - target.clone();
+		if d < 0 {
+			//println!("Pow 2 assumption broke low (basepow={0})", input.basepow+1);
+			return expand_qrt2(Qrt2 {num: input.num+1, basepow: input.basepow});
+		} else {
+			if d < cquad.clone()-target {
+				return Qrt2 {num: center+1, basepow: input.basepow+1}
+			} else {
+				return Qrt2 {num: center, basepow: input.basepow+1}
+			}
+		}
 	}
 }
