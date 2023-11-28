@@ -1,11 +1,13 @@
 use rug::Integer;
 use rug::ops::Pow;
+use std::time::Instant;
 
-pub fn calc_to_from(min: u32, max: u32, nstart: Integer, qrt_start: Qrt2) -> (Integer, Qrt2) {
+pub fn calc_to_from(min: u32, max: u32, nstart: Integer, qrt_start: Qrt2) -> (Integer, Qrt2, u128) {
 	let mut n: Integer = nstart;
 	let mut x: u32 = min;
 	let mut qrt2 = qrt_start;
 	let mut delta: i8;
+	let mut start = Instant::now();
 	loop {
 		n *= &qrt2.num;
 		n >>= &qrt2.basepow;
@@ -38,14 +40,8 @@ pub fn calc_to_from(min: u32, max: u32, nstart: Integer, qrt_start: Qrt2) -> (In
 			delta += 1;
 		}
 		
-		if x % 10000 == 0 {
-			//println!("Milestone: x={0}, n={1}, A={2}, B={3}", &x, &n, &qrt2_frac.0, &qrt2_frac.1);
-			//println!("Milestone: x={0}, n={1}", &x, &n);
-			println!("Milestone: x={0}", &x);
-		}
-		
-		if x >= max {
-			return (n, qrt2);
+		if x == max {
+			return (n, qrt2, start.elapsed().as_millis());
 		}
 		
 		if x%4 == 0 {
@@ -55,6 +51,10 @@ pub fn calc_to_from(min: u32, max: u32, nstart: Integer, qrt_start: Qrt2) -> (In
 		if delta > 2 { // Hopefully delta never exceeds 2, but if it does we might try an extra iteration
 			println!("delta={0}, expanding 2^1/4", &delta);
 			qrt2 = expand_qrt2(qrt2);
+		}
+
+		if x == max-1 {
+			start = Instant::now();
 		}
 	}
 }
