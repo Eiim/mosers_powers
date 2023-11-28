@@ -19,10 +19,6 @@ Values of A000127 are calculated using [Horner's Method](https://en.wikipedia.or
 # Future work
 
 I expect to put work into this only occasionally. But possible future directions include:
-
-* Improvements to 2^(1/4) calculation
-  * Remember previous state to iterate from there, reducing wasted work
-  * Use more "precise" algorithm to make smaller numerator and denominator lengths, thus making scaling faster
-* Load and save state
+* Improved polynomial calculation algorithms
 * Parallelization
 * GPU code
