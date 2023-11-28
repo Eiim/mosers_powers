@@ -7,8 +7,8 @@ fn main() {
 	let from_checkpoint: bool = true;
 	let write_checkpoint: bool = true;
 	
-	let min: u32 = 10000;
-	let max: u32 = 100000;
+	let min: u32 =  500000;
+	let max: u32 = 1000000;
 	let mut n: Integer = Integer::from(1u8);
 	let mut qrt2_num: Integer = Integer::from(2435);
 	let mut qrt2_base: u32 = 11;
