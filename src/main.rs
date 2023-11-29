@@ -8,35 +8,38 @@ fn main() {
 	let from_checkpoint: bool = true;
 	let write: bool = true;
 	
-	let min: u32 =  500000;
-	let max: u32 = 1000000;
-	let by:  u32 =  100000;
+	let min: u32 = 1000000;
+	let max: u32 = 1100000;
+	let by:  u32 =      10;
 	let mut n: Integer = Integer::from(1u8);
 	let mut qrt2 = Qrt2 {num: Integer::from(2435), basepow: 11u32};
 	
 	if from_checkpoint {
-		let cp = read_checkpoint(x);
+		let cp = read_checkpoint(min);
 		n = cp.0;
 		qrt2 = cp.1;
 	}
 	
 	let mut x = min;
-	while min < max {
-		let tmp_max: u32 = cmp::min(max, min+by);
-		let result: (Integer, Qrt2, u128) = calc_to_from(min, tmp_max, n, qrt2);
+	while x < max {
+		let tmp_max: u32 = cmp::min(max, x+by);
+		let result: (Integer, Qrt2, u128) = calc_to_from(x, tmp_max, n.clone(), qrt2);
 
 		println!("Milestone: x={0} (last iter took {1}ms)", &tmp_max, result.2);
 
 		if write {
-			write_checkpoint(tmp_max, result.0, result.1);
+			write_checkpoint(tmp_max, &result.0, &result.1);
 		}
+		
+		n = result.0;
+		qrt2 = result.1;
 
 		x += by;
 	}
 
 }
 
-fn write_checkpoint(x: u32, n: Integer, qrt: Qrt2) {
+fn write_checkpoint(x: u32, n: &Integer, qrt: &Qrt2) {
 	let data = format!("{}\n{}\n{}\n{}", x, n, qrt.num, qrt.basepow);
 	fs::write(format!("{}.cp", x), data).expect("Can't write file");
 }
@@ -46,8 +49,7 @@ fn read_checkpoint(x: u32) -> (Integer, Qrt2) {
 	let mut lines = data.split("\n");
 	let x_read = lines.next().expect("Checkpoiont file is missing the first line!").parse::<u32>().unwrap();
 	if x_read != x {
-		println!("Checkpoint file doesn't match!");
-		return;
+		panic!("Checkpoint file doesn't match!");
 	}
 	let n = Integer::from_str_radix(lines.next().expect("Checkpoiont file is missing the second line!"), 10).ok().expect("Parse error on n!");
 	let qrt2_num = Integer::from_str_radix(lines.next().expect("Checkpoiont file is missing the third line!"), 10).ok().expect("Parse error on num!");
