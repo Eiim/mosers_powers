@@ -1,8 +1,9 @@
 use rug::Integer;
 use rug::ops::Pow;
 use std::time::Instant;
+use std::fs;
 
-pub fn calc_to_from(min: u32, max: u32, nstart: Integer, qrt_start: Qrt2) -> (Integer, Qrt2, u128) {
+pub fn calc_to_from(min: u32, max: u32, nstart: Integer, qrt_start: Qrt2, file: bool) -> (u32, Integer, Qrt2, u128) {
 	let mut n: Integer = nstart;
 	let mut x: u32 = min;
 	let mut qrt2 = qrt_start;
@@ -21,7 +22,10 @@ pub fn calc_to_from(min: u32, max: u32, nstart: Integer, qrt_start: Qrt2) -> (In
 			let curr = calc_fact(&n);
 			if curr == target {
 				println!("Found power of two! x={0}, n={1}, delta={2}", &x, &n, &delta);
-				break;
+				if file {
+					message_power(&x);
+				}
+				return (x, n, qrt2, start.elapsed().as_millis());
 			} else if curr < target {
 				if prev_sign == 1 {
 					break;
@@ -41,7 +45,7 @@ pub fn calc_to_from(min: u32, max: u32, nstart: Integer, qrt_start: Qrt2) -> (In
 		}
 		
 		if x == max {
-			return (n, qrt2, start.elapsed().as_millis());
+			return (x, n, qrt2, start.elapsed().as_millis());
 		}
 		
 		if x%4 == 0 {
@@ -112,4 +116,18 @@ fn expand_qrt2(input: Qrt2) -> Qrt2 {
 			}
 		}
 	}
+}
+
+pub fn message_cp(x: &u32) {
+	let folder = "./messages/";
+	let prefix = "";
+	let data = format!("{} New mosers_powers milestone: x={}", prefix, x);
+	fs::write(format!("{}cp-{}.txt", folder, x), data).expect(&format!("Can't write message to {}cp-{}.txt", folder, x));
+}
+
+pub fn message_power(x: &u32) {
+	let folder = "./messages/";
+	let prefix = "";
+	let data = format!("{} Found power of 2 in A000127: x={}. See checkpoint file for details.", prefix, x);
+	fs::write(format!("{}pow-{}.txt", folder, x), data).expect(&format!("Can't write message to {}pow-{}.txt", folder, x));
 }
