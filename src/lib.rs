@@ -12,6 +12,8 @@ pub fn calc_to_from(min: u32, max: u32, nstart: Integer, qrt_start: Qrt2, file: 
 	loop {
 		n *= &qrt2.num;
 		n >>= &qrt2.basepow;
+		n += 1; // Round up
+		
 		x += 1;
 		delta = 0;
 		
@@ -28,7 +30,6 @@ pub fn calc_to_from(min: u32, max: u32, nstart: Integer, qrt_start: Qrt2, file: 
 				return (x, n, qrt2, start.elapsed().as_millis());
 			} else if curr < target {
 				if prev_sign == 1 {
-					n += 1;
 					break;
 				} else {
 					n += 1;
@@ -36,6 +37,7 @@ pub fn calc_to_from(min: u32, max: u32, nstart: Integer, qrt_start: Qrt2, file: 
 				}
 			} else {
 				if prev_sign == -1 {
+					n -= 1;
 					break;
 				} else {
 					n -= 1;
