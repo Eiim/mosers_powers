@@ -6,14 +6,14 @@ use std::fs;
 use std::cmp;
 
 fn main() {
-	let from_checkpoint: bool = false;
+	let from_checkpoint: bool = true;
 	let write: bool = true;
 	let message_file: bool = true;
 	
-	let min: u32 = 1000000;
-	let max: u32 = 1100000;
-	let by:  u32 =   10000;
-	let mut n: Integer = Integer::from(1u8);
+	let min: u32 =  1000000;
+	let max: u32 = 10000000;
+	let by:  u32 =  1000000;
+	let mut n: Integer = Integer::from(11);
 	let mut qrt2 = Qrt2 {num: Integer::from(2435), basepow: 11u32};
 	
 	if from_checkpoint {
@@ -46,11 +46,11 @@ fn main() {
 
 fn write_checkpoint(x: &u32, n: &Integer, qrt: &Qrt2) {
 	let data = format!("{}\n{}\n{}\n{}", x, n, qrt.num, qrt.basepow);
-	fs::write(format!("{}.cp", x), data).expect("Can't write file");
+	fs::write(format!("cps/{}.cp", x), data).expect("Can't write file");
 }
 
 fn read_checkpoint(x: u32) -> (Integer, Qrt2) {
-	let data = fs::read_to_string(format!("{}.cp", x)).expect(&format!("Can't find checkpoint {}", x));
+	let data = fs::read_to_string(format!("cps/{}.cp", x)).expect(&format!("Can't find checkpoint {}", x));
 	let mut lines = data.split("\n");
 	let x_read = lines.next().expect("Checkpoint file is missing the first line!").parse::<u32>().unwrap();
 	if x_read != x {
