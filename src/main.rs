@@ -1,11 +1,12 @@
 use rug::Integer;
-use mosers_powers::calc_to_from;
-use mosers_powers::Qrt2;
-use mosers_powers::message_cp;
-use std::fs;
 use std::cmp;
+use std::time::Instant;
+
+use mosers_powers::*;
+use mosers_powers::io::*;
 
 fn main() {
+	
 	let from_checkpoint: bool = true;
 	let write: bool = true;
 	let message_file: bool = true;
@@ -44,21 +45,65 @@ fn main() {
 
 }
 
-fn write_checkpoint(x: &u32, n: &Integer, qrt: &Qrt2) {
-	let data = format!("{}\n{}\n{}\n{}", x, n, qrt.num, qrt.basepow);
-	fs::write(format!("cps/{}.cp", x), data).expect("Can't write file");
-}
+fn calc_to_from(min: u32, max: u32, nstart: Integer, qrt_start: Qrt2, file: bool) -> (u32, Integer, Qrt2, u128) {
+	let mut n: Integer = nstart;
+	let mut x: u32 = min;
+	let mut qrt2 = qrt_start;
+	let mut delta: i8;
+	let mut start = Instant::now();
+	loop {
+		n *= &qrt2.num;
+		n >>= &qrt2.basepow;
+		n += 1; // Round up
+		
+		x += 1;
+		delta = 0;
+		
+		let target = Integer::from(1u8) << x;
+		
+		let mut prev_sign = 0i8;
+		loop {
+			let curr = calc_fact(&n);
+			if curr == target {
+				println!("Found power of two! x={0}, n={1}, delta={2}", &x, &n, &delta);
+				if file {
+					message_power(&x);
+				}
+				return (x, n, qrt2, start.elapsed().as_millis());
+			} else if curr < target {
+				if prev_sign == 1 {
+					break;
+				} else {
+					n += 1;
+					prev_sign = -1;
+				}
+			} else {
+				if prev_sign == -1 {
+					n -= 1;
+					break;
+				} else {
+					n -= 1;
+					prev_sign = 1;
+				}
+			}
+			delta += 1;
+		}
+		
+		if x == max {
+			return (x, n, qrt2, start.elapsed().as_millis());
+		}
+		
+		if x%4 == 0 {
+			qrt2 = expand_qrt2(qrt2);
+		}
 
-fn read_checkpoint(x: u32) -> (Integer, Qrt2) {
-	let data = fs::read_to_string(format!("cps/{}.cp", x)).expect(&format!("Can't find checkpoint {}", x));
-	let mut lines = data.split("\n");
-	let x_read = lines.next().expect("Checkpoint file is missing the first line!").parse::<u32>().unwrap();
-	if x_read != x {
-		panic!("Checkpoint file doesn't match!");
+		if delta > 2 { // Hopefully delta never exceeds 2, but if it does we might try an extra iteration
+			println!("delta={0}, expanding 2^1/4", &delta);
+			qrt2 = expand_qrt2(qrt2);
+		}
+
+		if x == max-1 {
+			start = Instant::now();
+		}
 	}
-	let n = Integer::from_str_radix(lines.next().expect("Checkpoiont file is missing the second line!"), 10).ok().expect("Parse error on n!");
-	let qrt2_num = Integer::from_str_radix(lines.next().expect("Checkpoiont file is missing the third line!"), 10).ok().expect("Parse error on num!");
-	let qrt2_base = lines.next().expect("Checkpoiont file is missing the fourth line!").parse::<u32>().unwrap();
-
-	return (n, Qrt2 {num: qrt2_num, basepow: qrt2_base})
 }
