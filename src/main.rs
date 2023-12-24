@@ -1,3 +1,4 @@
+use clap::{Arg, ArgAction, Command};
 use rug::Integer;
 use std::cmp;
 use std::time::Instant;
@@ -7,20 +8,72 @@ use mosers_powers::io::*;
 
 fn main() {
 	
-	let from_checkpoint: bool = true;
-	let write: bool = true;
-	let message_file: bool = true;
+	let matches = Command::new("Moser's Powers")
+		.version("0.3.0")
+		.arg(Arg::new("min")
+			.index(1)
+			.required(true)
+			.value_parser(clap::value_parser!(u32))
+			.help("Minimum x-value (power of 2)"))
+		.arg(Arg::new("max")
+			.index(2)
+			.required(true)
+			.value_parser(clap::value_parser!(u32))
+			.help("Maximum x-value"))
+		.arg(Arg::new("by")
+			.index(3)
+			.required(true)
+			.value_parser(clap::value_parser!(u32))
+			.help("x-value steps for messages, checkpoints"))
+		.arg(Arg::new("manual")
+			.long("manual")
+			.short('m')
+			.action(ArgAction::SetTrue)
+			.requires("n")
+			.requires("qrt2")
+			.help("Set n and qrt(2) values manually instead of using checkpoint file"))
+		.arg(Arg::new("n")
+			.short('n')
+			.long("n_start")
+			.num_args(1)
+			.help("Starting n-value"))
+		.arg(Arg::new("qrt2")
+			.short('q')
+			.long("qrt")
+			.num_args(2)
+			.value_names(["num", "denom"])
+			.help("qrt(2) approximation numerator and denominator (log 2)"))
+		.arg(Arg::new("disable_cp")
+			.long("disable_cp")
+			.short('d')
+			.action(ArgAction::SetTrue)
+			.help("Disable writing checkpoint files"))
+		.arg(Arg::new("message_output")
+			.long("message_output")
+			.short('o')
+			.action(ArgAction::SetTrue)
+			.help("Enable writing message files"))
+		.get_matches();
 	
-	let min: u32 =  1000000;
-	let max: u32 = 10000000;
-	let by:  u32 =  1000000;
-	let mut n: Integer = Integer::from(11);
-	let mut qrt2 = Qrt2 {num: Integer::from(2435), basepow: 11u32};
+	let from_checkpoint: bool = !matches.get_flag("manual");
+	let write: bool = !matches.get_flag("disable_cp");
+	let message_file: bool = matches.get_flag("message_output");
+	let min: u32 = *matches.get_one("min").expect("min is required!");
+	let max: u32 = *matches.get_one("max").expect("max is required!");
+	let by:  u32 = *matches.get_one("by").expect("by is required!");
+	
+	let mut n: Integer;
+	let mut qrt2: Qrt2;
 	
 	if from_checkpoint {
 		let cp = read_checkpoint(min);
 		n = cp.0;
 		qrt2 = cp.1;
+	} else {
+		n = Integer::from_str_radix(matches.get_one::<String>("n").expect("n is required in manual mode!"), 10).expect("Failed to parse n as an integer!");
+		let num: Integer = Integer::from_str_radix(matches.get_one::<String>("num").expect("qrt(2) numerator is required in manual mode!"), 10).expect("Failed to parse qrt(2) numerator as an integer!");
+		let den: u32 = *matches.get_one("den").expect("qrt(2) denominator is required in manual mode!");
+		qrt2 = Qrt2 {num: num, basepow: den};
 	}
 	
 	let mut x = min;
