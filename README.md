@@ -14,11 +14,10 @@ The program relies on the fact that A000127 is a quartic, and thus grows much sl
 
 However, for this to work, we need extremely precise approximations of 2^(1/4), or we'll quickly drift far away from our intended target. To generate these we iteratively extend the binary fraction corresponding to 2^(1/4), which allows for fast binary arithmetic rather than slow integer division.
 
-Values of A000127 are calculated using [Horner's Method](https://en.wikipedia.org/wiki/Horner%27s_method), using just three multiplications, three small additions/subtractions, one left-shift, and a divide by three.
+Values of A000127 are calculated with a modified version of [Motzkin's preprocessing method](https://en.wikipedia.org/wiki/Polynomial_evaluation#Evaluation_with_preprocessing) which allows us to work only in integers and use only two multiplications.
 
 # Future work
 
 I expect to put work into this only occasionally. But possible future directions include:
-* Improved polynomial calculation algorithms
+* Modulo arithmetic
 * Parallelization
-* GPU code
