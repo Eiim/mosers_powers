@@ -1,8 +1,8 @@
 # Mosers Powers
 
-A program to test the sequence A000127 (the solutions to [Mosers' circle problem](https://en.wikipedia.org/wiki/Dividing_a_circle_into_areas)) for powers of 2.
+A program to test the sequence [A000127](https://oeis.org/A000127) (the solutions to [Mosers' circle problem](https://en.wikipedia.org/wiki/Dividing_a_circle_into_areas)) for powers of 2.
 
-Currently tested up to x=20,000,000. That means we have determined that there are no non-trivial powers of 2 that appear in A000127 with exponents less than 20 million. That roughly corresponds to locations in the sequence with 1.5 million decimal digits. Testing is currently being run continously on a small server so this will be slightly out of date.
+Currently tested up to x=27,000,000. That means we have determined that there are no non-trivial powers of 2 that appear in A000127 with exponents less than 27 million. That roughly corresponds to locations in the sequence with 2 million decimal digits. Testing is currently being run continously on a small server so this will be slightly out of date.
 
 It's also my first Rust program. I decided a low-level approach would be necessary for the greatest speed, and I took that as an excuse to learn a bit of Rust.
 
