@@ -71,9 +71,10 @@ fn main() {
 		qrt2 = cp.1;
 	} else {
 		n = Integer::from_str_radix(matches.get_one::<String>("n").expect("n is required in manual mode!"), 10).expect("Failed to parse n as an integer!");
-		let num: Integer = Integer::from_str_radix(matches.get_one::<String>("num").expect("qrt(2) numerator is required in manual mode!"), 10).expect("Failed to parse qrt(2) numerator as an integer!");
-		let den: u32 = *matches.get_one("den").expect("qrt(2) denominator is required in manual mode!");
-		qrt2 = Qrt2 {num: num, basepow: den};
+		let qstr = &matches.get_occurrences("qrt2").unwrap().map(Iterator::collect).collect::<Vec<Vec<&String>>>()[0];
+		let num: Integer = Integer::from_str_radix(qstr[0], 10).expect("Failed to parse qrt(2) numerator as an integer!");
+		let den: Integer = Integer::from_str_radix(qstr[1], 10).expect("Failed to parse qrt(2) numerator as an integer!");
+		qrt2 = Qrt2 {num: num, basepow: den.to_u32().expect("qrt(2) denominator should fit in a u32!")};
 	}
 	
 	let mut x = min;
