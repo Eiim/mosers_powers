@@ -35,6 +35,7 @@ lazy_static! {
 	pub static ref ALPHA3: Integer = Integer::from(37491);
 }
 
+// Note: returns 3x the actual value for efficiency reasons
 pub fn calc_fact_2(n: &Integer) -> Integer {
 	let mut y: Integer = Integer::from(n << 3);
 	let mut res: Integer = y.clone();
@@ -45,8 +46,7 @@ pub fn calc_fact_2(n: &Integer) -> Integer {
 	res += &*ALPHA2;
 	res *= &y;
 	res += &*ALPHA3;
-	res >>= 9;
-	res / 3u8
+	res >>= 9
 }
 
 pub fn expand_qrt2(input: Qrt2) -> Qrt2 {

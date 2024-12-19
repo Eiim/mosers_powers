@@ -118,13 +118,14 @@ fn calc_to_from(min: u32, max: u32, nstart: Integer, qrt_start: Qrt2, file: bool
 		let mut prev_sign = 0i8;
 		loop {
 			let curr = calc_fact_2(&n);
-			if curr == target {
+			let target2 = target.clone() * 3;
+			if curr == target2 {
 				println!("Found power of two! x={0}, n={1}, delta={2}", &x, &n, &delta);
 				if file {
 					message_power(&x);
 				}
 				return (x, n, qrt2, start.elapsed().as_millis());
-			} else if curr < target {
+			} else if curr < target2 {
 				if prev_sign == 1 {
 					break;
 				} else {
